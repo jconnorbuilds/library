@@ -41,7 +41,7 @@ button {
 
 .container:has(.sidebar:hover),
 .container:has(form input:focus) {
-  grid-template-columns: 30% 1fr;
+  grid-template-columns: max(220px, 25%) 1fr;
 }
 .container:has(.sidebar:hover) .form-container,
 .container:has(form input:focus) .form-container {
@@ -103,7 +103,7 @@ button {
 
 .main-content .books {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, 300px);
   grid-template-rows: max-content;
   grid-auto-rows: minmax(max-content, auto);
   gap: 1rem;
