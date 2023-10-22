@@ -1,9 +1,28 @@
-const myLibrary = [];
+const myLibrary = [
+  {
+    id: 0,
+    title: 'My First Book',
+    author: 'Joe Connor',
+    year: 2023,
+    pages: 150,
+    read: false,
+  },
+  {
+    id: 1,
+    title: 'My Second Book',
+    author: 'Joe Connor',
+    year: 2023,
+    pages: 200,
+    read: true,
+  },
+];
+
 const addBookBtn = document.querySelector('#add-book');
 const booksDisplay = document.querySelector('.main-content .books');
 // const showSidebarBtn = document.querySelector('.show-sidebar');
 const sidebar = document.querySelector('.sidebar');
 const newBookForm = document.querySelector('#book-form');
+let readToggles;
 
 function Book(title, author, year, pages, read, id) {
   this.title = title;
@@ -15,7 +34,7 @@ function Book(title, author, year, pages, read, id) {
 }
 
 function* generator() {
-  let n = 0;
+  let n = myLibrary.length;
   while (n < 10000) {
     yield n;
     n++;
@@ -23,12 +42,24 @@ function* generator() {
 }
 
 const idGen = generator();
+myLibrary.forEach((book) => createCard(book));
 
 function deleteBook(book) {
   myLibrary.splice(myLibrary.indexOf(book), 1);
   cards = document.querySelectorAll('.books .card');
   for (card of cards) {
     if (+card.dataset.id === book.id) card.remove();
+  }
+}
+
+function toggleRead(e) {
+  let id = e.target.dataset.id;
+  let isChecked = e.target.checked;
+  for (let i = 0; i < myLibrary.length; i++) {
+    let book = myLibrary[i];
+    if (book.id === +id) {
+      book.read = isChecked === true ? true : false;
+    }
   }
 }
 
@@ -39,29 +70,48 @@ function createCard(book) {
   let yearDisplay = document.createElement('p');
   let pagesDisplay = document.createElement('p');
   let deleteBtn = document.createElement('button');
+  let readLabel = document.createElement('label');
+  let readToggle = document.createElement('input');
+
+  function wrapWithDiv() {
+    let wrappingP = document.createElement('div');
+    for (let i = 0; i < arguments.length; i++) {
+      wrappingP.appendChild(arguments[i]);
+    }
+    return wrappingP;
+  }
 
   card.classList.add('card');
   card.dataset.id = book.id;
-  titleDisplay.textContent = book.title;
-  authorDisplay.textContent = book.author;
-  yearDisplay.textContent = book.year;
-  pagesDisplay.textContent = book.pages;
   deleteBtn.textContent = 'Delete';
   deleteBtn.addEventListener('click', () => deleteBook(book));
+  titleDisplay.textContent = book.title;
+  authorDisplay.textContent = 'Author: ' + book.author;
+  yearDisplay.textContent = 'Pub. Year: ' + book.year;
+  pagesDisplay.textContent = 'Pages: ' + book.pages;
+  readLabel.setAttribute('for', 'read-toggle');
+  readLabel.textContent = 'Have you read this book? ';
+  readToggle.setAttribute('type', 'checkbox');
+  readToggle.setAttribute('id', 'read-toggle');
+  readToggle.classList.add('read-toggle');
+  readToggle.dataset.id = book.id;
+  readToggle.checked = book.read === true ? true : false;
+  readToggle.addEventListener('click', (e) => toggleRead(e));
 
   card.appendChild(titleDisplay);
   card.appendChild(authorDisplay);
   card.appendChild(yearDisplay);
   card.appendChild(pagesDisplay);
+  card.appendChild(wrapWithDiv(readLabel, readToggle));
   card.appendChild(deleteBtn);
-  booksDisplay.prepend(card);
+
+  booksDisplay.appendChild(card);
 }
 
 function addBookToLibrary(title, author, year, pages, read) {
   let newBook = new Book(title, author, year, pages, read, idGen.next().value);
   myLibrary.push(newBook);
   createCard(newBook);
-  console.log(`${newBook} added to library!`);
 }
 
 function submitForm(e) {
