@@ -19,18 +19,19 @@ const myLibrary = [
 
 const addBookBtn = document.querySelector('#add-book');
 const booksDisplay = document.querySelector('.main-content .books');
-// const showSidebarBtn = document.querySelector('.show-sidebar');
 const sidebar = document.querySelector('.sidebar');
 const newBookForm = document.querySelector('#book-form');
 let readToggles;
 
-function Book(title, author, year, pages, read, id) {
-  this.title = title;
-  this.author = author;
-  this.year = year;
-  this.pages = pages;
-  this.read = read;
-  this.id = id;
+class Book {
+  constructor(title, author, year, pages, read, id) {
+    this.title = title;
+    this.author = author;
+    this.year = year;
+    this.pages = pages;
+    this.read = read;
+    this.id = id;
+  }
 }
 
 function* generator() {
@@ -112,11 +113,11 @@ function addBookToLibrary(title, author, year, pages, read) {
   let newBook = new Book(title, author, year, pages, read, idGen.next().value);
   myLibrary.push(newBook);
   createCard(newBook);
+  return newBook;
 }
 
 function submitForm(e) {
   e.preventDefault();
-  console.log(e);
   let titleField = document.querySelector('form #title');
   let authorField = document.querySelector('form #author');
   let yearField = document.querySelector('form #year');
@@ -131,12 +132,6 @@ function submitForm(e) {
     readField.checked
   );
   newBookForm.reset();
-  console.log(newBook);
   return newBook;
 }
-
-// addBookBtn.addEventListener('click', function () {
-//   sidebar.classList.toggle('isCollapsed');
-// });
-
 newBookForm.addEventListener('submit', (e) => submitForm(e));
