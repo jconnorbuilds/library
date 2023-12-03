@@ -1,27 +1,16 @@
-const myLibrary = [
-  {
-    id: 0,
-    title: 'My First Book',
-    author: 'Joe Connor',
-    year: 2023,
-    pages: 150,
-    read: false,
-  },
-  {
-    id: 1,
-    title: 'My Second Book',
-    author: 'Joe Connor',
-    year: 2023,
-    pages: 200,
-    read: true,
-  },
-];
+function* generator() {
+  let n = Library.get().length;
+  while (n < 10000) {
+    yield n;
+    n++;
+  }
+}
 
-const addBookBtn = document.querySelector('#add-book');
-const booksDisplay = document.querySelector('.main-content .books');
-const sidebar = document.querySelector('.sidebar');
-const newBookForm = document.querySelector('#book-form');
-let readToggles;
+const idGen = generator();
+
+class Card {
+  constructor() {}
+}
 
 class Book {
   constructor(title, author, year, pages, read, id) {
@@ -32,106 +21,150 @@ class Book {
     this.read = read;
     this.id = id;
   }
-}
 
-function* generator() {
-  let n = myLibrary.length;
-  while (n < 10000) {
-    yield n;
-    n++;
+  static create(title, author, year, pages, read) {
+    return new Book(title, author, year, pages, read, idGen.next().value);
+  }
+
+  toggleRead() {
+    this.read = !this.read;
   }
 }
 
-const idGen = generator();
-myLibrary.forEach((book) => createCard(book));
+const Library = (() => {
+  const library = [
+    new Book(
+      (title = 'My First Book'),
+      (author = 'Joe Connor'),
+      (year = 2023),
+      (pages = 150),
+      (read = false),
+      (id = 0)
+    ),
+    new Book(
+      (title = 'My Second Book'),
+      (author = 'Joe Connor'),
+      (year = 2023),
+      (pages = 200),
+      (read = true),
+      (id = 1)
+    ),
+  ];
+  const get = () => library;
+  const addBook = (book, createCard) => {
+    library.push(book);
+    createCard(book);
+  };
 
-function deleteBook(book) {
-  myLibrary.splice(myLibrary.indexOf(book), 1);
-  cards = document.querySelectorAll('.books .card');
-  for (card of cards) {
-    if (+card.dataset.id === book.id) card.remove();
-  }
-}
-
-function toggleRead(e) {
-  let id = e.target.dataset.id;
-  let isChecked = e.target.checked;
-  for (let i = 0; i < myLibrary.length; i++) {
-    let book = myLibrary[i];
-    if (book.id === +id) {
-      book.read = isChecked === true ? true : false;
+  const deleteBook = (book) => {
+    library.splice(library.indexOf(book), 1);
+    for (let card of document.querySelectorAll('.books .card')) {
+      if (+card.dataset.id === book.id) card.remove();
     }
-  }
-}
+  };
+  return {
+    get,
+    addBook,
+    deleteBook,
+  };
+})();
 
-function createCard(book) {
-  let card = document.createElement('div');
-  let titleDisplay = document.createElement('h3');
-  let authorDisplay = document.createElement('p');
-  let yearDisplay = document.createElement('p');
-  let pagesDisplay = document.createElement('p');
-  let deleteBtn = document.createElement('button');
-  let readLabel = document.createElement('label');
-  let readToggle = document.createElement('input');
+const UI = (() => {
+  const addBookBtn = document.querySelector('#add-book');
+  const booksDisplay = document.querySelector('.main-content .books');
+  const sidebar = document.querySelector('.sidebar');
+  const newBookForm = document.querySelector('#book-form');
 
-  function wrapWithDiv() {
-    let wrappingP = document.createElement('div');
-    for (let i = 0; i < arguments.length; i++) {
-      wrappingP.appendChild(arguments[i]);
+  const wrapWithDiv = (...elements) => {
+    let wrappingDiv = document.createElement('div');
+    for (let i = 0; i < [...elements].length; i++) {
+      wrappingDiv.appendChild([...elements][i]);
     }
-    return wrappingP;
-  }
+    return wrappingDiv;
+  };
 
-  card.classList.add('card');
-  card.dataset.id = book.id;
-  deleteBtn.textContent = 'Delete';
-  deleteBtn.addEventListener('click', () => deleteBook(book));
-  titleDisplay.textContent = book.title;
-  authorDisplay.textContent = 'Author: ' + book.author;
-  yearDisplay.textContent = 'Pub. Year: ' + book.year;
-  pagesDisplay.textContent = 'Pages: ' + book.pages;
-  readLabel.setAttribute('for', 'read-toggle');
-  readLabel.textContent = 'Have you read this book? ';
-  readToggle.setAttribute('type', 'checkbox');
-  readToggle.setAttribute('id', 'read-toggle');
-  readToggle.classList.add('read-toggle');
-  readToggle.dataset.id = book.id;
-  readToggle.checked = book.read === true ? true : false;
-  readToggle.addEventListener('click', (e) => toggleRead(e));
+  const createCard = (book) => {
+    const { id, title, author, year, pages, read } = book;
 
-  card.appendChild(titleDisplay);
-  card.appendChild(authorDisplay);
-  card.appendChild(yearDisplay);
-  card.appendChild(pagesDisplay);
-  card.appendChild(wrapWithDiv(readLabel, readToggle));
-  card.appendChild(deleteBtn);
+    const card = document.createElement('div');
+    const titleDisplay = document.createElement('h3');
+    const authorDisplay = document.createElement('p');
+    const yearDisplay = document.createElement('p');
+    const pagesDisplay = document.createElement('p');
+    const deleteBtn = document.createElement('button');
+    const readLabel = document.createElement('label');
+    const readToggle = document.createElement('input');
 
-  booksDisplay.appendChild(card);
-}
+    card.classList.add('card');
+    card.dataset.id = id;
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', () => Library.deleteBook(book));
+    titleDisplay.textContent = title;
+    authorDisplay.textContent = 'Author: ' + author;
+    yearDisplay.textContent = 'Pub. Year: ' + year;
+    pagesDisplay.textContent = 'Pages: ' + pages;
+    readLabel.setAttribute('for', 'read-toggle');
+    readLabel.textContent = 'Have you read this book? ';
+    readToggle.setAttribute('type', 'checkbox');
+    readToggle.setAttribute('id', 'read-toggle');
+    readToggle.classList.add('read-toggle');
+    readToggle.dataset.id = id;
+    readToggle.checked = read === true ? true : false;
+    readToggle.addEventListener('click', () => book.toggleRead());
 
-function addBookToLibrary(title, author, year, pages, read) {
-  let newBook = new Book(title, author, year, pages, read, idGen.next().value);
-  myLibrary.push(newBook);
-  createCard(newBook);
-  return newBook;
-}
+    card.appendChild(titleDisplay);
+    card.appendChild(authorDisplay);
+    card.appendChild(yearDisplay);
+    card.appendChild(pagesDisplay);
+    card.appendChild(wrapWithDiv(readLabel, readToggle));
+    card.appendChild(deleteBtn);
 
-function submitForm(e) {
-  e.preventDefault();
-  let titleField = document.querySelector('form #title');
-  let authorField = document.querySelector('form #author');
-  let yearField = document.querySelector('form #year');
-  let pagesField = document.querySelector('form #pages');
-  let readField = document.querySelector('form #read');
+    booksDisplay.appendChild(card);
+  };
 
-  let newBook = addBookToLibrary(
-    titleField.value,
-    authorField.value,
-    yearField.value,
-    pagesField.value,
-    readField.checked
+  const submitForm = (addToLibrary, form) => (e) => {
+    e.preventDefault();
+    const titleField = document.querySelector('form #title');
+    const authorField = document.querySelector('form #author');
+    const yearField = document.querySelector('form #year');
+    const pagesField = document.querySelector('form #pages');
+    const readField = document.querySelector('form #read');
+
+    const newBook = Book.create(
+      titleField.value,
+      authorField.value,
+      yearField.value,
+      pagesField.value,
+      readField.checked
+    );
+    addToLibrary(newBook, createCard);
+    form.reset();
+
+    return newBook;
+  };
+  newBookForm.addEventListener(
+    'submit',
+    submitForm(Library.addBook, newBookForm)
   );
-  newBookForm.reset();
-  return newBook;
-}
-newBookForm.addEventListener('submit', (e) => submitForm(e));
+
+  return {
+    addBookBtn,
+    booksDisplay,
+    sidebar,
+    newBookForm,
+    createCard,
+  };
+})();
+
+const Main = ((Library) => {
+  const library = Library.get();
+  const init = () => {
+    library.forEach((book) => UI.createCard(book));
+  };
+
+  return {
+    init,
+  };
+})(Library);
+
+Main.init();
